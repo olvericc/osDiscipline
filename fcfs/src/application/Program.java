@@ -1,6 +1,5 @@
 package application;
 
-//import entities.PriorityTask;
 import entities.Task;
 import utils.Printer;
 import utils.Timing;
@@ -34,13 +33,6 @@ public class Program
             tasks.add(new Task(i + 1, bT));
         }
 
-//        int pTaskId = nTasks + 1;
-
-//        Printer.print("\ttask " + pTaskId + ": ");
-//        int pBurstTime = sc.nextInt();
-
-//        tasks.add(new PriorityTask(pTaskId, pBurstTime, 3));
-
         Timing.timingFCFS(tasks);
 
         Printer.taskTable();
@@ -65,9 +57,6 @@ public class Program
             avgWaitTime += task.getwT();
             avgResponseTime += task.getrT();
         }
-
-//        avgWaitTime /= nTasks + 1;
-//        avgResponseTime /= nTasks + 1;
 
         avgWaitTime /= nTasks;
         avgResponseTime /= nTasks;
