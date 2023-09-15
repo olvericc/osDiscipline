@@ -1,63 +1,86 @@
 package application;
 
+//import entities.PriorityTask;
+import entities.Task;
+import utils.Printer;
+import utils.Timing;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
+import static utils.Alignment.alignRight;
 
 public class Program
 {
+
     public static void main(String[] args)
     {
-        int i, no_p;
+        Scanner sc = new Scanner(System.in);
 
-        int[] burst_time, TT, WT;
-        float avg_wait = 0, avg_TT = 0;
+        Printer.print("enter the number of tasks: ");
+        int nTasks = sc.nextInt();
 
-        burst_time = new int[50];
-        TT = new int[50];
-        WT = new int[50];
+        List<Task> tasks = new ArrayList<>();
 
-        WT[0] = 0;
+        Printer.printL("\n enter the estimated duration of each task:");
 
-        Scanner s = new Scanner(System.in);
-
-        System.out.println("Entre o número de processos: ");
-
-        no_p = s.nextInt();
-
-        System.out.println("\nInforme a duração estimada de cada processo:");
-
-        for(i = 0; i < no_p; i++)
+        for (int i = 0; i < nTasks; i++)
         {
-            System.out.print("\tP" + (i + 1) + ": ");
-            burst_time[i] = s.nextInt();
+            Printer.print("\ttask " + (i + 1) + ": ");
+            int bT = sc.nextInt();
+
+            tasks.add(new Task(i + 1, bT));
         }
 
-        for(i = 1; i < no_p; i++)
+//        int pTaskId = nTasks + 1;
+
+//        Printer.print("\ttask " + pTaskId + ": ");
+//        int pBurstTime = sc.nextInt();
+
+//        tasks.add(new PriorityTask(pTaskId, pBurstTime, 3));
+
+        Timing.timingFCFS(tasks);
+
+        Printer.taskTable();
+
+        double avgWaitTime = 0, avgResponseTime = 0;
+        int COLUMN_WIDTH = 15;
+
+        for (Task task : tasks)
         {
-            WT[i] = WT[i - 1] + burst_time[i - 1];
-            avg_wait += WT[i];
+            String id = String.format("%d", task.getId());
+            String bT = String.format("%d", task.getbT());
+            String wT = String.format("%d", task.getwT());
+            String rT = String.format("%d", task.getrT());
+
+            id = alignRight(id, COLUMN_WIDTH);
+            bT = alignRight(bT, COLUMN_WIDTH);
+            wT = alignRight(wT, COLUMN_WIDTH);
+            rT = alignRight(rT, COLUMN_WIDTH);
+
+            Printer.printL(id + bT + wT + rT);
+
+            avgWaitTime += task.getwT();
+            avgResponseTime += task.getrT();
         }
 
-        avg_wait /= no_p;
+//        avgWaitTime /= nTasks + 1;
+//        avgResponseTime /= nTasks + 1;
 
-        for(i = 0; i < no_p; i++)
-        {
-            TT[i] = WT[i] + burst_time[i];
-            avg_TT += TT[i];
-        }
+        avgWaitTime /= nTasks;
+        avgResponseTime /= nTasks;
 
-        avg_TT /= no_p;
-        System.out.println("\n****************************************************************");
-        System.out.println("\tProcessos:");
-        System.out.println("****************************************************************");
-        System.out.println(" Processo\tTempo Estimado\tTempo de Espera\tTempo de Execução");
+        DecimalFormat decimalFormat = new DecimalFormat("#,##");
 
-        for(i = 0; i < no_p; i++)
-        {
-            System.out.println("\tP" + (i + 1) + "\t " + burst_time[i] + "\t\t " + WT[i] + "\t\t " + TT[i]);
-        }
+        String formattedAvgWaitTime = decimalFormat.format(avgWaitTime);
+        String formattedAvgResponseTime = decimalFormat.format(avgResponseTime);
 
-        System.out.println("\n----------------------------------------------------------------");
-        System.out.println("\nTempo de Espera Médio : " + avg_wait);
-        System.out.println("\nTempo Médio de Saída : " + avg_TT + "\n");
+        Printer.printL("\n--------------------------------------------------------------------------");
+        Printer.printL("\naverage wait time : " + formattedAvgWaitTime);
+        Printer.printL("\naverage departure time : " + formattedAvgResponseTime);
+
+        sc.close();
     }
 }
