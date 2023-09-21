@@ -1,79 +1,76 @@
 package application;
 
+import entities.Task;
+import utils.Alignment;
+import utils.Printer;
+import utils.Timing;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
+
+import static utils.Printer.printL;
 
 public class Program
 {
-    public static void main(String[] args) {
-        int i;
-        int n;
-        int[] burst_time;
-        int[] remaining_time;
-        int[] TT;
-        int[] WT;
-        int total_time = 0;
-        int current_time = 0;
-        float avg_wait = 0, avg_TT = 0;
+    public static void main(String[] args)
+    {
+        Scanner sc = new Scanner(System.in);
+        Locale.setDefault(Locale.US);
 
-        Scanner s = new Scanner(System.in);
-        System.out.println("Entre o número de processos: ");
-        n = s.nextInt();
+        Printer.print("Enter the number of tasks: ");
+        Printer.print("");
+        int numberOfTasks = sc.nextInt();
 
-        burst_time = new int[n];
-        remaining_time = new int[n];
-        TT = new int[n];
-        WT = new int[n];
+        List<Task> tasks = new ArrayList<>();
 
-        System.out.println("\nInforme a duração estimada de cada processo:");
-        for (i = 0; i < n; i++) {
-            System.out.print("\tP" + (i + 1) + ": ");
-            burst_time[i] = s.nextInt();
-            remaining_time[i] = burst_time[i];
+        for (int i = 0; i < numberOfTasks; i++)
+        {
+            Printer.print("Enter the estimated duration of task T" + (i + 1) + ": ");
+            int burstTime = sc.nextInt();
+            tasks.add(new Task(i + 1, burstTime));
         }
 
-        int completed = 0;
-        while (completed < n) {
-            int shortest = -1;
-            int shortestTime = Integer.MAX_VALUE;
+        Timing timing = new Timing(tasks);
+        timing.run();
+        timing.calc();
+        Printer.showTable();
 
-            for (i = 0; i < n; i++) {
-                if (remaining_time[i] > 0 && remaining_time[i] < shortestTime && current_time >= WT[i]) {
-                    shortest = i;
-                    shortestTime = remaining_time[i];
-                }
-            }
+        int totalWaitTime = 0;
+        int totalAnswerTime = 0;
 
-            if (shortest == -1) {
-                current_time++;
-                continue;
-            }
+        for (Task task : tasks)
+        {
+            String taskId = "T" + task.getId();
+            String burstTime = String.valueOf(task.getbTime());
+            String waitTime = String.valueOf(task.getaTime() - task.getbTime());
+            String departureTime = String.valueOf(task.getaTime());
 
-            remaining_time[shortest]--;
+            taskId = Alignment.alignRight(taskId, 8);
+            burstTime = Alignment.alignRight(burstTime, 15);
+            waitTime = Alignment.alignRight(waitTime, 12);
+            departureTime = Alignment.alignRight(departureTime, 15);
 
-            if (remaining_time[shortest] == 0) {
-                completed++;
-                TT[shortest] = current_time + 1;
-                avg_TT += TT[shortest] - burst_time[shortest];
-                avg_wait += TT[shortest] - burst_time[shortest] - WT[shortest];
-            }
+            printL(taskId + burstTime + waitTime + departureTime);
 
-            current_time++;
+            totalWaitTime += (task.getaTime() - task.getbTime());
+            totalAnswerTime += (task.getaTime());
         }
 
-        avg_TT /= n;
-        avg_wait /= n;
+        double avgWaitingTime = (double) totalWaitTime / numberOfTasks;
+        double avgResponseTime = (double) totalAnswerTime / numberOfTasks;
 
-        System.out.println("\n****************************************************************");
-        System.out.println("\tProcessos:");
-        System.out.println("****************************************************************");
-        System.out.println(" Processo\tTempo Estimado\tTempo de Espera\tTempo de Execução");
+        DecimalFormat decimalFormat = new DecimalFormat("#.##");
 
-        for (i = 0; i < n; i++) {
-            System.out.println("\tP" + (i + 1) + "\t " + burst_time[i] + "\t\t " + (TT[i] - burst_time[i]) + "\t\t " + TT[i]);
-        }
+        String formattedAvgWaitingTime = decimalFormat.format(avgWaitingTime);
+        String formattedAvgResponseTime = decimalFormat.format(avgResponseTime);
 
-        System.out.println("\n----------------------------------------------------------------");
-        System.out.println("\nTempo de Espera Médio : " + avg_wait);
-        System.out.println("\nTempo Médio de Saída : " + avg_TT + "\n");
+        Printer.printL("\n----------------------------------------------------------------");
+        Printer.printL("\nAverage waiting time: " + formattedAvgWaitingTime);
+        Printer.printL("\nAverage departure time: " + formattedAvgResponseTime);
+
+        sc.close();
     }
 }
